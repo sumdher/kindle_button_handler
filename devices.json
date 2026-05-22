@@ -1,0 +1,58 @@
+{
+  "_note": "Community device key codes. hex_code = little-endian 4-char hexdump string (e.g. key 116=0x74 -> '7400'). PRs welcome.",
+  "devices": {
+    "KOA3": {
+      "name": "Kindle Oasis 10th gen",
+      "aliases": ["rex"],
+      "fw": ["5.18.2"],
+      "by": [],
+      "buttons": {
+        "power": {"event": "event1", "hex_code": "7400"},
+        "next":  {"event": "event3", "hex_code": "6800"},
+        "back":  {"event": "event3", "hex_code": "6D00"}
+      }
+    },
+    "KOA2": {
+      "name": "Kindle Oasis 9th gen",
+      "aliases": ["oak"],
+      "fw": [],
+      "by": [],
+      "buttons": {
+        "power": {"event": "event1", "hex_code": "7400"},
+        "next":  {"event": "event3", "hex_code": "6800"},
+        "back":  {"event": "event3", "hex_code": "6D00"}
+      },
+      "_note": "Unverified — assumed same as KOA3."
+    },
+    "KPW4": {
+      "name": "Kindle Paperwhite 10th gen",
+      "aliases": ["elf"],
+      "fw": [],
+      "by": [],
+      "buttons": {
+        "power": {"event": "event0", "hex_code": "7400"}
+      },
+      "_note": "No page-turn buttons."
+    },
+    "KPW5": {
+      "name": "Kindle Paperwhite 11th gen",
+      "aliases": ["mahe"],
+      "fw": [],
+      "by": [],
+      "buttons": {
+        "power": {"event": "event0", "hex_code": "7400"}
+      },
+      "_note": "No page-turn buttons."
+    },
+    "KT4": {
+      "name": "Kindle 10th gen",
+      "aliases": ["jem"],
+      "fw": [],
+      "by": [],
+      "buttons": {
+        "power": {"event": "event0", "hex_code": "7400"}
+      },
+      "_note": "Unverified."
+    }
+  }
+}

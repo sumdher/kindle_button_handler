@@ -1,0 +1,17 @@
+{
+  "items": [
+    {
+      "name": "Button Handler [BETA]",
+      "items": [
+        {"name": "Start",            "action": "button_main.sh start",           "exitmenu": "true"},
+        {"name": "Stop",             "action": "button_main.sh stop",            "exitmenu": "true"},
+        {"name": "Restart",          "action": "button_main.sh restart",         "exitmenu": "true"},
+        {"name": "Status",           "action": "button_main.sh"},
+        {"name": "Wizard: All",      "action": "button_main.sh wizard",          "exitmenu": "true"},
+        {"name": "Wizard: Power",    "action": "button_main.sh wizard power",    "exitmenu": "true"},
+        {"name": "Wizard: Next",     "action": "button_main.sh wizard next",     "exitmenu": "true"},
+        {"name": "Wizard: Prev",     "action": "button_main.sh wizard back",     "exitmenu": "true"}
+      ]
+    }
+  ]
+}

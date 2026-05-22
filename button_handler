@@ -1,0 +1,242 @@
+#!/bin/sh
+# Button Handler for Kindle (tested on: Oasis (10th Generation))
+#
+# Back button short press                    → decrease brightness
+# Next button short press                    → increase brightness
+# Back button long press (>0.8s)             → reload current page (CDP)
+# Next button long press (>0.8s)             → stop browser
+# Back held → Next tap                       → toggle display inversion (Y8 ↔ Y8INV)
+# Next held → Back tap                       → toggle display inversion (Y8 ↔ Y8INV)
+#
+# Power long press (>1s)                     → [test OK: power_long]
+# Power long press + tap                     → [test OK: power_long_tap]
+# Power long press + double tap              → [test OK: power_long_doubletap]
+#
+# Tested on: Kindle Oasis 10th Gen (KOA3), firmware 5.18.2
+
+DEV_PAGE="/dev/input/event3"
+DEV_PWR="/dev/input/event1"
+LONG_PRESS_MS=800
+PWR_LONG_MS=1000
+DOUBLE_TAP_MS=400
+MIN_BRIGHTNESS=1
+MAX_BRIGHTNESS=24
+
+# Temp files for power button IPC between background reader and main loop
+PWR_PRESS_FILE="/tmp/pwr_press_time"
+PWR_RELEASE_FILE="/tmp/pwr_release_time"
+PWR_TAP_FILE="/tmp/pwr_tap_time"
+
+# Clean up temp files on exit
+trap 'rm -f $PWR_PRESS_FILE $PWR_RELEASE_FILE $PWR_TAP_FILE; kill $(jobs -p) 2>/dev/null' EXIT
+
+get_brightness() {
+    lipc-get-prop com.lab126.powerd flIntensity
+}
+
+set_brightness() {
+    lipc-set-prop com.lab126.powerd flIntensity "$1"
+}
+
+decrease_brightness() {
+    current=$(get_brightness)
+    new=$((current - 2))
+    [ "$new" -lt "$MIN_BRIGHTNESS" ] && new=$MIN_BRIGHTNESS
+    set_brightness "$new"
+}
+
+increase_brightness() {
+    current=$(get_brightness)
+    new=$((current + 2))
+    [ "$new" -gt "$MAX_BRIGHTNESS" ] && new=$MAX_BRIGHTNESS
+    set_brightness "$new"
+}
+
+reload_page() {
+    port=$(cat /mnt/us/system/browser/kindle_browser/DevToolsActivePort 2>/dev/null | head -1)
+    [ -z "$port" ] && return
+    id=$(curl -s http://127.0.0.1:$port/json | grep -o '"id": "[^"]*"' | head -1 | cut -d'"' -f4)
+    [ -z "$id" ] && return
+    { printf "GET /devtools/page/$id HTTP/1.1\r\nHost: 127.0.0.1:$port\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\nSec-WebSocket-Version: 13\r\n\r\n"
+      sleep 1
+      printf '\x81\xab\x00\x00\x00\x00{"id":1,"method":"Page.reload","params":{}}'
+      sleep 2
+    } | nc -w 4 127.0.0.1 $port > /dev/null 2>&1
+}
+
+stop_browser() {
+    /mnt/us/documents/shortcut_stop.sh
+}
+
+browser_running() {
+    pgrep -f kindle_browser > /dev/null 2>&1
+}
+
+ms_now() {
+    awk '{printf "%d\n", $1*1000}' /proc/uptime
+}
+
+toggle_inversion() {
+    current=$(lipc-get-prop com.lab126.winmgr epdcMode 2>/dev/null)
+    if [ "$current" = "Y8INV" ]; then
+        lipc-set-prop com.lab126.winmgr epdcMode Y8
+    else
+        lipc-set-prop com.lab126.winmgr epdcMode Y8INV
+    fi
+}
+
+# --- POWER BUTTON BACKGROUND READER ---
+# Runs in background, writes press/release timestamps to temp files
+# Main loop polls these files to detect power gestures
+power_reader() {
+    while true; do
+        event=$(dd if="$DEV_PWR" bs=16 count=1 2>/dev/null | hexdump -v -e '16/1 "%02X"')
+        type="${event:16:4}"
+        code="${event:20:4}"
+        value="${event:24:8}"
+        [ "$type" != "0100" ] && continue
+        [ "$code" != "7400" ] && continue
+        if [ "$value" = "01000000" ]; then
+            ms_now > "$PWR_PRESS_FILE"
+        elif [ "$value" = "00000000" ]; then
+            ms_now > "$PWR_RELEASE_FILE"
+        fi
+    done
+}
+
+# Start power reader in background
+power_reader &
+
+# --- POWER GESTURE DETECTOR ---
+# Called from main loop on each iteration to check for completed power gestures
+# State persisted in temp files:
+#   PWR_PRESS_FILE   — time of last power press
+#   PWR_RELEASE_FILE — time of last power release
+#   PWR_TAP_FILE     — time of last confirmed short tap after long press
+pwr_last_processed_release=0
+pwr_tap_count=0
+pwr_long_fired=0
+pwr_tap_window_start=0
+
+check_power_gestures() {
+    # Read current state from temp files
+    pwr_press=$(cat "$PWR_PRESS_FILE" 2>/dev/null)
+    pwr_release=$(cat "$PWR_RELEASE_FILE" 2>/dev/null)
+    now=$(ms_now)
+
+    [ -z "$pwr_press" ] && return
+    [ -z "$pwr_release" ] && return
+
+    # Skip if we already processed this release
+    [ "$pwr_release" = "$pwr_last_processed_release" ] && {
+        # Check if tap window has expired — dispatch accumulated taps
+        if [ "$pwr_long_fired" = "1" ] && [ "$pwr_tap_window_start" -gt 0 ]; then
+            elapsed_window=$((now - pwr_tap_window_start))
+            if [ "$elapsed_window" -gt "$DOUBLE_TAP_MS" ]; then
+                if [ "$pwr_tap_count" = "1" ]; then
+                    echo "test OK: power_long_tap"
+                elif [ "$pwr_tap_count" -ge "2" ]; then
+                    echo "test OK: power_long_doubletap"
+                fi
+                pwr_tap_count=0
+                pwr_tap_window_start=0
+                pwr_long_fired=0
+            fi
+        fi
+        return
+    }
+
+    # New release detected
+    hold_duration=$((pwr_release - pwr_press))
+
+    if [ "$hold_duration" -ge "$PWR_LONG_MS" ]; then
+        # Long press completed
+        echo "test OK: power_long"
+        pwr_long_fired=1
+        pwr_tap_count=0
+        pwr_tap_window_start=0
+    elif [ "$pwr_long_fired" = "1" ]; then
+        # Short tap after a long press — count it
+        pwr_tap_count=$((pwr_tap_count + 1))
+        # Start/reset tap window
+        pwr_tap_window_start=$(ms_now)
+    fi
+
+    pwr_last_processed_release="$pwr_release"
+}
+
+# --- MAIN STATE ---
+back_press_time=0
+next_press_time=0
+back_held=0
+next_held=0
+combo_fired=0
+
+# --- MAIN LOOP ---
+while true; do
+    # Check power gestures on every iteration
+    check_power_gestures
+
+    event=$(dd if="$DEV_PAGE" bs=16 count=1 2>/dev/null | hexdump -v -e '16/1 "%02X"')
+    type="${event:16:4}"
+    code="${event:20:4}"
+    value="${event:24:8}"
+
+    [ "$type" != "0100" ] && continue
+    browser_running || continue
+
+    # --- BACK BUTTON (6D00) ---
+    if [ "$code" = "6D00" ]; then
+        if [ "$value" = "01000000" ]; then
+            back_held=1
+            back_press_time=$(ms_now)
+            [ "$next_held" = "0" ] && combo_fired=0
+
+        elif [ "$value" = "00000000" ]; then
+            back_held=0
+            if [ "$combo_fired" = "1" ]; then
+                [ "$next_held" = "0" ] && combo_fired=0
+            elif [ "$next_held" = "1" ]; then
+                toggle_inversion
+                combo_fired=1
+                back_press_time=0
+            elif [ "$back_press_time" -gt 0 ]; then
+                now=$(ms_now)
+                elapsed=$((now - back_press_time))
+                if [ "$elapsed" -ge "$LONG_PRESS_MS" ]; then
+                    reload_page
+                else
+                    decrease_brightness
+                fi
+            fi
+            back_press_time=0
+        fi
+
+    # --- NEXT BUTTON (6800) ---
+    elif [ "$code" = "6800" ]; then
+        if [ "$value" = "01000000" ]; then
+            next_held=1
+            next_press_time=$(ms_now)
+            [ "$back_held" = "0" ] && combo_fired=0
+
+        elif [ "$value" = "00000000" ]; then
+            next_held=0
+            if [ "$combo_fired" = "1" ]; then
+                [ "$back_held" = "0" ] && combo_fired=0
+            elif [ "$back_held" = "1" ]; then
+                toggle_inversion
+                combo_fired=1
+                next_press_time=0
+            elif [ "$next_press_time" -gt 0 ]; then
+                now=$(ms_now)
+                elapsed=$((now - next_press_time))
+                if [ "$elapsed" -ge "$LONG_PRESS_MS" ]; then
+                    stop_browser
+                else
+                    increase_brightness
+                fi
+            fi
+            next_press_time=0
+        fi
+    fi
+done
