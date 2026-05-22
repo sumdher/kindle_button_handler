@@ -186,6 +186,7 @@ button_main.sh restart   # restart
 button_main.sh           # show status screen
 ```
 
+
 Or use the KUAL menu items.
 
 - PID file: `/tmp/kbh.pid`
