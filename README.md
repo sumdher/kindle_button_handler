@@ -39,7 +39,7 @@ General-purpose (app-specific rules) physical button remapper for [jailbroken](h
 
 Active when `kindle_browser` (its pname) process runs.
 
-If it doesn't work for you, see this: [Wrong profile firing](#no-config) to get the foreground app reliably.
+If it doesn't work for you, see this: [Wrong profile firing](#foreground_troubleshoot) to get the foreground app reliably.
 
 
 | Trigger | Action |
@@ -114,7 +114,7 @@ kill -0 $(cat /tmp/kbh.pid) && echo "ALIVE" || echo "DEAD"
 cat /tmp/kbh.log
 ```
 
-<a id="no-config"></a>
+<a id="foreground_troubleshoot"></a>
 
 **Wrong profile firing** — check foreground app and verify pgrep matches:
 ```sh
