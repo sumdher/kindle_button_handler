@@ -1,6 +1,6 @@
 # Kindle Button Handler [BETA]
 
-General-purpose physical button remapper for jailbroken Kindles. KUAL extension.
+General-purpose (app-specific rules) physical button remapper for [jailbroken](https://kindlemodding.org/jailbreaking/index.html) Kindles. Runs as a [KUAL](https://kindlemodding.org/jailbreaking/post-jailbreak/installing-kual-mrpi/) extension.
 
 **Tested on:** Kindle Oasis 3 (KOA3), firmware 5.18.2
 
@@ -26,7 +26,8 @@ General-purpose physical button remapper for jailbroken Kindles. KUAL extension.
 | tap next-page | brightness +2 |
 | tap prev-page | brightness −2 |
 | hold prev-page | go to home screen |
-| hold power | show battery + brightness |
+| hold prev-page | -- do nothing -- |
+| hold power [*](#known-issues) | show battery + brightness |
 | hold prev + tap next **1×** | toggle dark mode |
 | hold next + tap prev **1×** | toggle dark mode |
 | hold prev + tap next **2×** | toggle warm light |
@@ -34,7 +35,12 @@ General-purpose physical button remapper for jailbroken Kindles. KUAL extension.
 | hold prev + tap next **3×** | warm light +4 |
 | hold next + tap prev **3×** | warm light −4 |
 
-### kindle\_browser (active when `kindle_browser` process runs)
+### Example for ['shortcut\_browser'](https://github.com/mitchellurgero/kindle-shortcut-browser)
+
+Active when `kindle_browser` (its pname) process runs.
+
+If it doesn't work for you, see this: [Wrong profile firing](#no-config) to get the foreground app reliably.
+
 
 | Trigger | Action |
 |---|---|
@@ -108,6 +114,8 @@ kill -0 $(cat /tmp/kbh.pid) && echo "ALIVE" || echo "DEAD"
 cat /tmp/kbh.log
 ```
 
+<a id="no-config"></a>
+
 **Wrong profile firing** — check foreground app and verify pgrep matches:
 ```sh
 lipc-get-prop com.lab126.appmgrd activeApp
@@ -133,7 +141,9 @@ for i in 0 1 2 3; do hexdump -v -e '16/1 "%02X\n"' /dev/input/event$i & done
 
 <!-- ## Hey there!
 
-If you are reading this, you seem to be interested in this project. Please add your Kindle device's key codes here so we can have a comprehensive dictionary for all the kindle devices. Thank you.
+If you are reading this, you seem to be interested in this project. Please add your Kindle device's key codes here so we can have a comprehensive dictionary for all the kindle devices. 
+
+Thank you.
 
 ### Adding Your Device (Optional)
 
