@@ -1,0 +1,9 @@
+#!/bin/sh
+# next_short — quick tap on next-page (kindle_browser profile)
+# Active when: pgrep -f kindle_browser
+# Default: increase brightness (same as default, but you can override)
+
+cur=$(lipc-get-prop -i com.lab126.powerd flIntensity 2>/dev/null)
+new=$(( cur + 2 ))
+[ "$new" -gt 24 ] && new=24
+lipc-set-prop com.lab126.powerd flIntensity "$new"

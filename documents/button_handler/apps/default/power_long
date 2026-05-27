@@ -1,0 +1,25 @@
+#!/bin/sh
+# power_long — hold power button (default profile)
+# Default: show battery level and brightness on screen via eips
+
+bat=$(lipc-get-prop -i com.lab126.powerd battLevel 2>/dev/null)
+charging=$(lipc-get-prop -i com.lab126.powerd isCharging 2>/dev/null)
+bright=$(lipc-get-prop -i com.lab126.powerd flIntensity 2>/dev/null)
+
+[ "$charging" = "1" ] && chg="charging" || chg="on battery"
+
+# Get eips grid dimensions (same logic as button_handler_main.sh)
+_w=$(cut -d, -f1 /sys/class/graphics/fb0/virtual_size 2>/dev/null)
+_h=$(cat /sys/class/graphics/fb0/modes 2>/dev/null | grep -o 'x[0-9]*' | head -1 | tr -d 'x')
+COLS=$(( ${_w:-1280} / 16 ))
+ROWS=$(( ${_h:-1680} / 24 ))
+
+_eips() {
+    local msg="$1" row="$2"
+    while [ "${#msg}" -lt "$COLS" ]; do msg="$msg "; done
+    eips 0 "$row" "$msg" >/dev/null 2>&1
+}
+
+base=$(( ROWS - 5 ))
+_eips "Battery : ${bat}%  (${chg})" $base
+_eips "Brightness: ${bright}/24" $(( base + 1 ))

@@ -1,0 +1,5 @@
+#!/bin/sh
+# next_long — hold next-page button (default profile)
+# Default: set brightness to maximum (24)
+
+lipc-set-prop com.lab126.powerd flIntensity 24

@@ -1,0 +1,5 @@
+#!/bin/sh
+# back_long — hold prev-page button (default profile)
+# Default: set brightness to minimum (0 = off)
+
+lipc-set-prop com.lab126.powerd flIntensity 0

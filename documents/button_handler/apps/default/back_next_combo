@@ -1,0 +1,13 @@
+#!/bin/sh
+# back_next_combo — hold prev-page, tap next-page (default profile)
+# Default: toggle Wi-Fi on/off
+
+state=$(lipc-get-prop com.lab126.wifid cmState 2>/dev/null)
+case "$state" in
+    connected|associating|connecting)
+        lipc-set-prop com.lab126.wifid cmd DISCONNECT 2>/dev/null
+        ;;
+    *)
+        lipc-set-prop com.lab126.wifid cmd CONNECT 2>/dev/null
+        ;;
+esac

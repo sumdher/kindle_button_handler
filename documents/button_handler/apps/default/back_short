@@ -1,0 +1,8 @@
+#!/bin/sh
+# back_short — quick tap on prev-page button (default profile)
+# Default: decrease screen brightness by 2 steps
+
+cur=$(lipc-get-prop -i com.lab126.powerd flIntensity 2>/dev/null)
+new=$(( cur - 2 ))
+[ "$new" -lt 0 ] && new=0
+lipc-set-prop com.lab126.powerd flIntensity "$new"

@@ -1,0 +1,5 @@
+#!/bin/sh
+# next_back_combo — hold next-page, tap prev-page (default profile)
+# Default: go to Kindle home/library screen
+
+lipc-set-prop com.lab126.appmgr start '{"id":"com.lab126.booklet"}' 2>/dev/null

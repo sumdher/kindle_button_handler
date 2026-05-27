@@ -1,0 +1,10 @@
+#!/bin/sh
+# power_long_tap1 — power hold, then 1 quick tap (default profile)
+# Default: toggle auto-brightness (warm light if available, else brightness cycle)
+
+cur=$(lipc-get-prop -i com.lab126.powerd flIntensity 2>/dev/null)
+if [ "$cur" -gt 0 ]; then
+    lipc-set-prop com.lab126.powerd flIntensity 0
+else
+    lipc-set-prop com.lab126.powerd flIntensity 12
+fi

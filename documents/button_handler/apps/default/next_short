@@ -1,0 +1,8 @@
+#!/bin/sh
+# next_short — quick tap on next-page button (default profile)
+# Default: increase screen brightness by 2 steps
+
+cur=$(lipc-get-prop -i com.lab126.powerd flIntensity 2>/dev/null)
+new=$(( cur + 2 ))
+[ "$new" -gt 24 ] && new=24
+lipc-set-prop com.lab126.powerd flIntensity "$new"

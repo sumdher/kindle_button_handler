@@ -3,6 +3,9 @@ CLAUDE.md
 .venv
 
 .data
-.claude
+.claude*
 .settings.json
 .vscode
+
+.*
+*.ref
