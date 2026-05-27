@@ -1,0 +1,23 @@
+#!/bin/sh
+# back_long — hold prev-page (kindle_browser profile)
+# Active when: pgrep -f kindle_browser
+# Action: reload the current browser tab via Chrome DevTools Protocol (CDP)
+
+port=$(cat /mnt/us/system/browser/kindle_browser/DevToolsActivePort 2>/dev/null | head -1)
+[ -z "$port" ] && exit 0
+
+id=$(curl -s "http://127.0.0.1:$port/json" 2>/dev/null \
+     | grep -o '"id": "[^"]*"' | head -1 | cut -d'"' -f4)
+[ -z "$id" ] && exit 0
+
+# WebSocket frame: Page.reload via CDP
+{
+    printf "GET /devtools/page/%s HTTP/1.1\r\n" "$id"
+    printf "Host: 127.0.0.1:%s\r\n" "$port"
+    printf "Upgrade: websocket\r\nConnection: Upgrade\r\n"
+    printf "Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==\r\n"
+    printf "Sec-WebSocket-Version: 13\r\n\r\n"
+    sleep 1
+    printf '\x81\xab\x00\x00\x00\x00{"id":1,"method":"Page.reload","params":{}}'
+    sleep 2
+} | nc -w 4 127.0.0.1 "$port" >/dev/null 2>&1

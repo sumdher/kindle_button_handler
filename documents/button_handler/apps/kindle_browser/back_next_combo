@@ -1,0 +1,11 @@
+#!/bin/sh
+# back_next_combo — hold prev-page, tap next-page (kindle_browser profile)
+# Active when: pgrep -f kindle_browser
+# Action: toggle display inversion (Y8 ↔ Y8INV)
+
+cur=$(lipc-get-prop com.lab126.winmgr epdcMode 2>/dev/null)
+if [ "$cur" = "Y8INV" ]; then
+    lipc-set-prop com.lab126.winmgr epdcMode Y8
+else
+    lipc-set-prop com.lab126.winmgr epdcMode Y8INV
+fi

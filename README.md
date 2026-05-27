@@ -32,7 +32,11 @@ kindle_button_handler/
 │           │   └── next_back_combo  hold next + tap prev → go to home/library
 │           └── kindle_browser/      fires only when kindle_browser is running
 │               ├── next_short       quick tap → brightness +2
-│               └── back_short       quick tap → brightness -2
+│               ├── next_long        hold      → stop browser
+│               ├── back_short       quick tap → brightness -2
+│               ├── back_long        hold      → reload page (CDP)
+│               ├── back_next_combo  hold prev + tap next → toggle inversion
+│               └── next_back_combo  hold next + tap prev → toggle inversion
 │
 ├── devices.json                 Community button key-code database (reference only)
 └── README.md
@@ -46,18 +50,20 @@ kindle_button_handler/
 
 ```sh
 cp -r extensions/button_handler /mnt/us/extensions/
-chmod +x /mnt/us/extensions/button_handler/button_handler_main.sh
 ```
 
 ### 2 — Copy action scripts (user data)
 
 ```sh
 cp -r documents/button_handler /mnt/us/documents/
-chmod +x /mnt/us/documents/button_handler/apps/default/*
-chmod +x /mnt/us/documents/button_handler/apps/kindle_browser/*
 ```
 
-> **Note:** The `/mnt/us/documents/button_handler/` directory is created automatically
+> **Note:** No `chmod +x` needed. `/mnt/us` is FAT32 — execute bits are not
+> meaningful there. KUAL invokes the main script via `sh`, and the daemon calls
+> all action scripts via `sh` internally, so no execute permission is required
+> on any file.
+>
+> The `/mnt/us/documents/button_handler/` directory is also created automatically
 > on first run if it doesn't exist. You only need to copy it if you want the
 > pre-built action scripts.
 

@@ -104,7 +104,7 @@ show_btn() {
 start_d() {
     if running; then kh_msg "KBH: already running (PID $(cat "$PID"))"; return; fi
     if [ ! -f "$DATA/config" ]; then kh_msg "KBH: no config -- run Capture first"; return; fi
-    "$0" __daemon >> /tmp/kbh.log 2>&1 &
+    sh "$0" __daemon >> /tmp/kbh.log 2>&1 &
     echo $! > "$PID"; sleep 1
     if running; then
         kh_msg "KBH: started (PID $(cat "$PID"))"
@@ -238,7 +238,7 @@ daemon_run() {
             [ -x "${app}${g}" ] && s="${app}${g}" && break
         done
         [ -z "$s" ] && [ -x "$DATA/apps/default/$g" ] && s="$DATA/apps/default/$g"
-        [ -n "$s" ] && "$s" &
+        [ -n "$s" ] && sh "$s" &
     }
 
     pwr_reader() {

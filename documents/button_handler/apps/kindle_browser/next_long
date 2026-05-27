@@ -1,0 +1,13 @@
+#!/bin/sh
+# next_long — hold next-page (kindle_browser profile)
+# Active when: pgrep -f kindle_browser
+# Action: stop the Kindle browser
+
+# Delegate to the user's stop shortcut if present
+if [ -x /mnt/us/documents/shortcut_stop.sh ]; then
+    sh /mnt/us/documents/shortcut_stop.sh
+    exit $?
+fi
+
+# Fallback: kill kindle_browser directly
+pkill -f kindle_browser 2>/dev/null
