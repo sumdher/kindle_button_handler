@@ -34,6 +34,14 @@ _eips() {
 # Single-line message at bottom row (libkh5 kh_eips_print style).
 kh_msg() { _eips "$1" $(( EIPS_ROWS - 2 )); }
 
+# Gesture notification at row 0 (top / status bar area).
+# Shows "▸ <gesture>" for 5s, then erases by overwriting with spaces.
+# The Kindle OS redraws its own status bar on the next UI refresh.
+_notif() {
+    _eips "  ▸ $1" 0
+    ( sleep 5; _eips "" 0 ) &
+}
+
 # Multi-line block written into the bottom N rows — no screen clear.
 # KUAL renders in the upper portion; bottom rows are free for our use.
 _eips_block() {
@@ -238,7 +246,10 @@ daemon_run() {
             [ -f "${app}${g}" ] && s="${app}${g}" && break
         done
         [ -z "$s" ] && [ -f "$DATA/apps/global_defaults/$g" ] && s="$DATA/apps/global_defaults/$g"
-        [ -n "$s" ] && sh "$s" &
+        if [ -n "$s" ]; then
+            _notif "$g"
+            sh "$s" &
+        fi
     }
 
     pwr_reader() {
@@ -269,7 +280,9 @@ daemon_run() {
             return
         fi
         hold=$((pr - pp))
-        if [ "$hold" -ge "$PWR_LONG_MS" ]; then
+        # Upper bound: Kindle shows shutdown menu after ~10s hold.
+        # Only handle power_long if released between PWR_LONG_MS and 9s.
+        if [ "$hold" -ge "$PWR_LONG_MS" ] && [ "$hold" -lt 9000 ]; then
             fire "power_long"; pwr_long=1; pwr_taps=0; pwr_win=0
         elif [ "$pwr_long" = "1" ]; then
             pwr_taps=$((pwr_taps + 1))

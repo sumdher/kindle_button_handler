@@ -1,5 +1,10 @@
 #!/bin/sh
-# next_back_combo — hold next-page, tap prev-page (default profile)
-# Default: go to Kindle home/library screen
+# next_back_combo — hold next-page, tap prev-page (global_defaults profile)
+# Action: toggle night mode (display inversion Y8 ↔ Y8INV)
 
-lipc-set-prop com.lab126.appmgr start '{"id":"com.lab126.booklet"}' 2>/dev/null
+cur=$(lipc-get-prop com.lab126.winmgr epdcMode 2>/dev/null)
+if [ "$cur" = "Y8INV" ]; then
+    lipc-set-prop com.lab126.winmgr epdcMode Y8
+else
+    lipc-set-prop com.lab126.winmgr epdcMode Y8INV
+fi

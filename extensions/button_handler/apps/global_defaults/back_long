@@ -1,5 +1,5 @@
 #!/bin/sh
-# back_long — hold prev-page button (default profile)
-# Default: set brightness to minimum (0 = off)
+# back_long — hold prev-page (global_defaults profile)
+# Action: go to Kindle home/library screen
 
-lipc-set-prop com.lab126.powerd flIntensity 0
+lipc-set-prop com.lab126.appmgr start '{"id":"com.lab126.booklet"}' 2>/dev/null
