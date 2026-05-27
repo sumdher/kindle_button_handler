@@ -32,21 +32,24 @@
           "action": "./button_handler_main.sh",
           "params": "cap_power",
           "exitmenu": false,
-          "refresh": false
+          "refresh": false,
+          "internal": "status >>> NOW press the physical POWER button <<<"
         },
         {
           "name": "Capture: NEXT PAGE button  (press w/in 12s)",
           "action": "./button_handler_main.sh",
           "params": "cap_next",
           "exitmenu": false,
-          "refresh": false
+          "refresh": false,
+          "internal": "status >>> NOW press the physical NEXT PAGE button <<<"
         },
         {
           "name": "Capture: PREV PAGE button  (press w/in 12s)",
           "action": "./button_handler_main.sh",
           "params": "cap_back",
           "exitmenu": false,
-          "refresh": false
+          "refresh": false,
+          "internal": "status >>> NOW press the physical PREV PAGE button <<<"
         },
         {
           "name": "Recognized Buttons",

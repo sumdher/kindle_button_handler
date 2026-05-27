@@ -166,7 +166,14 @@ _cap() {
 
 cap_btn() {
     local btn="$1"   # power | next | back
-    kh_msg "KBH capture: press the $btn button now (12s)..."
+    local LOG="/tmp/kbh.log"
+
+    echo "$(date) cap_btn[$btn]: starting" >> "$LOG"
+
+    # Write feedback to row 1 (top area) — visible above KUAL's menu items
+    # and also to the bottom row for good measure
+    _eips "> KBH CAPTURE $btn: press button now (12s)..." 1
+    kh_msg   "KBH capture: press the $btn button now (12s)..."
 
     running && kill -STOP "$(cat "$PID")" 2>/dev/null
     touch /tmp/kbh_paused
@@ -176,7 +183,10 @@ cap_btn() {
     rm -f /tmp/kbh_paused
     running && kill -CONT "$(cat "$PID")" 2>/dev/null
 
+    echo "$(date) cap_btn[$btn]: result='$r'" >> "$LOG"
+
     if [ -z "$r" ]; then
+        _eips "> KBH CAPTURE $btn: TIMEOUT -- nothing detected" 1
         kh_msg "KBH capture timeout: $btn -- nothing detected"
         return 1
     fi
@@ -216,7 +226,9 @@ EOF
             ;;
     esac
 
+    _eips "> KBH CAPTURED $btn: /dev/input/$ev  code $code" 1
     kh_msg "KBH captured $btn: /dev/input/$ev  code $code"
+    echo "$(date) cap_btn[$btn]: saved ev=$ev code=$code" >> "$LOG"
 }
 
 # ── Gesture engine (__daemon — do not call directly) ─────────────────────────
