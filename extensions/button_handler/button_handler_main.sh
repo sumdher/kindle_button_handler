@@ -233,11 +233,11 @@ daemon_run() {
         local g="$1" s="" app nm
         for app in "$DATA/apps"/*/; do
             nm="${app%/}"; nm="${nm##*/}"
-            [ "$nm" = "default" ] && continue
+            [ "$nm" = "global_defaults" ] && continue
             pgrep -f "$nm" >/dev/null 2>&1 || continue
             [ -f "${app}${g}" ] && s="${app}${g}" && break
         done
-        [ -z "$s" ] && [ -f "$DATA/apps/default/$g" ] && s="$DATA/apps/default/$g"
+        [ -z "$s" ] && [ -f "$DATA/apps/global_defaults/$g" ] && s="$DATA/apps/global_defaults/$g"
         [ -n "$s" ] && sh "$s" &
     }
 
@@ -325,7 +325,7 @@ daemon_run() {
 }
 
 # ── Entry point ───────────────────────────────────────────────────────────────
-mkdir -p "$DATA/apps/default" "$DATA/apps/kindle_browser" 2>/dev/null || true
+mkdir -p "$DATA/apps/global_defaults" "$DATA/apps/kindle_browser" 2>/dev/null || true
 
 case "${1:-toggle}" in
     __daemon)  daemon_run ;;

@@ -18,7 +18,7 @@ kindle_button_handler/
 │       ├── menu.json                KUAL menu definition (start/stop/capture/status)
 │       ├── button_handler_main.sh   daemon control + button capture logic
 │       └── apps/
-│           ├── default/             fires when no specific app is matched
+│           ├── global_defaults/     fires when no specific app is matched
 │           │   ├── next_short       quick tap → brightness +2
 │           │   ├── next_long        hold      → brightness max
 │           │   ├── back_short       quick tap → brightness -2
@@ -112,12 +112,12 @@ EOF
 ### Profile matching
 
 The **directory name** is matched against running processes with `pgrep -f <name>`.
-First match wins. `default` always fires as fallback.
+First match wins. `global_defaults` always fires as fallback.
 
 ```
-apps/kindle_browser/    → active when: pgrep -f kindle_browser
-apps/com.lab126.reader/ → active when: pgrep -f com.lab126.reader
-apps/default/           → always active (fallback)
+apps/kindle_browser/      → active when: pgrep -f kindle_browser
+apps/com.lab126.reader/   → active when: pgrep -f com.lab126.reader
+apps/global_defaults/     → always active (fallback)
 ```
 
 ### Useful lipc commands
