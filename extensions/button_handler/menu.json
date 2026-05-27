@@ -10,7 +10,7 @@
           "action": "./button_handler_main.sh",
           "params": "start",
           "exitmenu": false,
-          "refresh": false
+          "refresh": true
         },
         {
           "name": "Stop",
@@ -18,14 +18,14 @@
           "action": "./button_handler_main.sh",
           "params": "stop",
           "exitmenu": false,
-          "refresh": false
+          "refresh": true
         },
         {
           "name": "Restart",
           "action": "./button_handler_main.sh",
           "params": "restart",
           "exitmenu": false,
-          "refresh": false
+          "refresh": true
         },
         {
           "name": "Capture: POWER button  (press w/in 12s)",

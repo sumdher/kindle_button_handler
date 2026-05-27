@@ -387,11 +387,12 @@ daemon_run() {
 # ── Entry point ───────────────────────────────────────────────────────────────
 mkdir -p "$DATA/apps/global_defaults" "$DATA/apps/kindle_browser" 2>/dev/null || true
 
+# All actions redirect stdout to /dev/null — any stdout causes KUAL to dismiss the menu
 case "${1:-toggle}" in
     __daemon)  daemon_run ;;
-    start)     start_d ;;
-    stop)      stop_d ;;
-    restart)   stop_d; sleep 1; start_d ;;
+    start)     start_d   >/dev/null 2>&1 ;;
+    stop)      stop_d    >/dev/null 2>&1 ;;
+    restart)   { stop_d; sleep 1; start_d; } >/dev/null 2>&1 ;;
     status)    status ;;
     info)      info ;;
     menu)      ;;
@@ -401,7 +402,5 @@ case "${1:-toggle}" in
     btn_power) show_btn power ;;
     btn_next)  show_btn next ;;
     btn_back)  show_btn back ;;
-    toggle)
-        if running; then stop_d; else start_d; fi
-        ;;
+    toggle)    { if running; then stop_d; else start_d; fi; } >/dev/null 2>&1 ;;
 esac
