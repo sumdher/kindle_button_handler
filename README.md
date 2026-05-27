@@ -3,7 +3,15 @@
 General-purpose physical button remapper for jailbroken Kindles.
 Compatible with **KUAL**.
 
-Tested on: Kindle Oasis 10th gen (KOA3), firmware 5.18.2.
+Tested on: Jailbroken Kindle Oasis 10th gen (KOA3), firmware 5.18.2.
+
+---
+
+## Quick setup
+
+Paste the directory `extensions/button_handler` in your kindle's `/mnt/us/extensions/`
+
+That's it! Open KUAL and open the app `Button Handler [BETA]`
 
 ---
 

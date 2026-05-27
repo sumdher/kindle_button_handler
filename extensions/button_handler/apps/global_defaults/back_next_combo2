@@ -1,0 +1,14 @@
+#!/bin/sh
+# back_next_combo2 — hold prev-page, tap next-page TWICE (global_defaults profile)
+# Action: toggle warm light (Warmth) on/off
+#
+# SSH test to confirm property name on your device:
+#   lipc-get-prop -s com.lab126.powerd | grep -i warm
+#   lipc-get-prop -i com.lab126.powerd wlIntensity
+
+cur=$(lipc-get-prop -i com.lab126.powerd wlIntensity 2>/dev/null)
+if [ "$cur" -gt 0 ]; then
+    lipc-set-prop com.lab126.powerd wlIntensity 0
+else
+    lipc-set-prop com.lab126.powerd wlIntensity 24
+fi

@@ -295,39 +295,74 @@ daemon_run() {
         pwr_last="$pr"
     }
 
-    bh=0; bt=0; nh=0; nt=0; cf=0
+    # bh/nh    : back/next currently held (1/0)
+    # bt/nt    : timestamp of back/next press
+    # cf       : combo is active (suppress solo events)
+    # combo_base  : which button was pressed first ("back" | "next" | "")
+    # combo_taps  : how many times the aux button was tapped while base is held
+    bh=0; bt=0; nh=0; nt=0; cf=0; combo_base=""; combo_taps=0
     trap 'kill $(jobs -p) 2>/dev/null; rm -f ${T}_pp ${T}_pr' EXIT
     pwr_reader &
 
     while true; do
         [ -f "/tmp/kbh_paused" ] && { sleep 1; continue; }
         chk_pwr
-        ev=$(dd if="$DEV_PAGE" bs=16 count=1 2>/dev/null | hexdump -v -e '16/1 "%02X"')
+        # timeout 1: loop cycles every ~1s so chk_pwr runs even with no page events
+        ev=$(timeout 1 dd if="$DEV_PAGE" bs=16 count=1 2>/dev/null | hexdump -v -e '16/1 "%02X"')
         [ "${#ev}" -lt 28 ] && continue
         t="${ev:16:4}"; c="${ev:20:4}"; v="${ev:24:8}"
         [ "$t" = "0100" ] || continue
 
         if [ "$c" = "$BACK_CODE" ]; then
             if [ "$v" = "01000000" ]; then
-                bh=1; bt=$(ms); [ "$nh" = "0" ] && cf=0
+                # BACK pressed
+                if [ "$nh" = "1" ]; then
+                    # next already held → back is an aux tap on next-as-base combo
+                    combo_taps=$((combo_taps + 1)); cf=1
+                else
+                    bh=1; bt=$(ms)
+                    [ "$cf" = "0" ] && { combo_base="back"; combo_taps=0; }
+                fi
             else
+                # BACK released
                 bh=0
-                if   [ "$cf" = "1" ];  then [ "$nh" = "0" ] && cf=0
-                elif [ "$nh" = "1" ];  then fire "next_back_combo"; cf=1; bt=0
-                elif [ "$bt" -gt 0 ];  then
+                if [ "$combo_base" = "back" ] && [ "$cf" = "1" ]; then
+                    # back was base, fire with tap count
+                    if [ "$combo_taps" -eq 1 ]; then fire "back_next_combo"
+                    else fire "back_next_combo${combo_taps}"; fi
+                    combo_base=""; combo_taps=0; cf=0
+                elif [ "$combo_base" = "next" ] && [ "$nh" = "0" ]; then
+                    # next was base and already fired on next-release; clean up
+                    combo_base=""; cf=0
+                elif [ "$cf" = "0" ] && [ "$bt" -gt 0 ]; then
                     e=$(($(ms) - bt))
                     [ "$e" -ge "$LONG_PRESS_MS" ] && fire "back_long" || fire "back_short"
                 fi
                 bt=0
             fi
+
         elif [ "$c" = "$NEXT_CODE" ]; then
             if [ "$v" = "01000000" ]; then
-                nh=1; nt=$(ms); [ "$bh" = "0" ] && cf=0
+                # NEXT pressed
+                if [ "$bh" = "1" ]; then
+                    # back already held → next is an aux tap on back-as-base combo
+                    combo_taps=$((combo_taps + 1)); cf=1
+                else
+                    nh=1; nt=$(ms)
+                    [ "$cf" = "0" ] && { combo_base="next"; combo_taps=0; }
+                fi
             else
+                # NEXT released
                 nh=0
-                if   [ "$cf" = "1" ];  then [ "$bh" = "0" ] && cf=0
-                elif [ "$bh" = "1" ];  then fire "back_next_combo"; cf=1; nt=0
-                elif [ "$nt" -gt 0 ];  then
+                if [ "$combo_base" = "next" ] && [ "$cf" = "1" ]; then
+                    # next was base, fire with tap count
+                    if [ "$combo_taps" -eq 1 ]; then fire "next_back_combo"
+                    else fire "next_back_combo${combo_taps}"; fi
+                    combo_base=""; combo_taps=0; cf=0
+                elif [ "$combo_base" = "back" ] && [ "$bh" = "0" ]; then
+                    # back was base and already fired on back-release; clean up
+                    combo_base=""; cf=0
+                elif [ "$cf" = "0" ] && [ "$nt" -gt 0 ]; then
                     e=$(($(ms) - nt))
                     [ "$e" -ge "$LONG_PRESS_MS" ] && fire "next_long" || fire "next_short"
                 fi
