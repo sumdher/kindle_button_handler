@@ -26,7 +26,7 @@ General-purpose (app-specific rules) physical button remapper for [jailbroken](h
 | tap next-page | brightness +2 |
 | tap prev-page | brightness −2 |
 | hold prev-page | go to home screen |
-| hold prev-page | -- do nothing -- |
+| hold next-page | -- do nothing -- |
 | hold power [*](#known-issues) | show battery + brightness |
 | hold prev + tap next **1×** | toggle dark mode |
 | hold next + tap prev **1×** | toggle dark mode |
@@ -34,6 +34,7 @@ General-purpose (app-specific rules) physical button remapper for [jailbroken](h
 | hold next + tap prev **2×** | toggle warm light |
 | hold prev + tap next **3×** | warm light +4 |
 | hold next + tap prev **3×** | warm light −4 |
+
 
 ### Example for ['shortcut\_browser'](https://github.com/mitchellurgero/kindle-shortcut-browser)
 
