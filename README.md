@@ -16,10 +16,7 @@ kindle_button_handler/
 │   └── button_handler/          ← copy this entire folder to /mnt/us/extensions/
 │       ├── config.xml               KUAL extension manifest
 │       ├── menu.json                KUAL menu definition (start/stop/capture/status)
-│       └── button_handler_main.sh   daemon control + button capture logic
-│
-├── documents/
-│   └── button_handler/          ← copy this entire folder to /mnt/us/documents/
+│       ├── button_handler_main.sh   daemon control + button capture logic
 │       └── apps/
 │           ├── default/             fires when no specific app is matched
 │           │   ├── next_short       quick tap → brightness +2
@@ -46,30 +43,17 @@ kindle_button_handler/
 
 ## Installation
 
-### 1 — Copy extension files (KUAL launcher)
+One command:
 
 ```sh
 cp -r extensions/button_handler /mnt/us/extensions/
 ```
 
-### 2 — Copy action scripts (user data)
+> **No `chmod +x` needed.** `/mnt/us` is FAT32 — execute bits don't apply.
+> KUAL calls the main script via `sh`, and the daemon invokes all action scripts
+> via `sh` too, so nothing needs to be marked executable.
 
-```sh
-cp -r documents/button_handler /mnt/us/documents/
-```
-
-> **Note:** No `chmod +x` needed. `/mnt/us` is FAT32 — execute bits are not
-> meaningful there. KUAL invokes the main script via `sh`, and the daemon calls
-> all action scripts via `sh` internally, so no execute permission is required
-> on any file.
->
-> The `/mnt/us/documents/button_handler/` directory is also created automatically
-> on first run if it doesn't exist. You only need to copy it if you want the
-> pre-built action scripts.
-
-### 3 — Open KUAL
-
-**Button Handler [BETA]** will appear in the KUAL menu.
+Then open KUAL — **Button Handler [BETA]** will appear in the menu.
 
 ---
 
@@ -82,7 +66,7 @@ The daemon needs to know which physical button is which. Run this once:
 3. KUAL → Button Handler → **Capture: PREV PAGE button** → press prev-page
 
 After each capture the bottom of the screen shows the detected event device and key code.
-Results are saved to `/mnt/us/documents/button_handler/config`.
+Results are saved to `/mnt/us/extensions/button_handler/config`.
 
 Then tap **Start**. The menu shows **Daemon: RUNNING**.
 
@@ -107,23 +91,22 @@ Then tap **Start**. The menu shows **Daemon: RUNNING**.
 
 ## Writing action scripts
 
-Each gesture slot is a plain executable shell script. Create it at:
+Each gesture slot is a plain shell script (no `.sh` extension, no execute bit needed).
+Create one at:
 
 ```
-/mnt/us/documents/button_handler/apps/<profile>/<gesture>
+/mnt/us/extensions/button_handler/apps/<profile>/<gesture>
 ```
 
 Example — scroll down in the browser on next-page tap:
 
 ```sh
-mkdir -p /mnt/us/documents/button_handler/apps/kindle_browser
+mkdir -p /mnt/us/extensions/button_handler/apps/kindle_browser
 
-cat > /mnt/us/documents/button_handler/apps/kindle_browser/next_short << 'EOF'
+cat > /mnt/us/extensions/button_handler/apps/kindle_browser/next_short << 'EOF'
 #!/bin/sh
 lipc-set-prop com.lab126.browser jsEval 'window.scrollBy(0, 300)'
 EOF
-
-chmod +x /mnt/us/documents/button_handler/apps/kindle_browser/next_short
 ```
 
 ### Profile matching
@@ -155,13 +138,18 @@ lipc-set-prop    com.lab126.wifid cmd DISCONNECT
 
 # Go to home screen
 lipc-set-prop com.lab126.appmgr start '{"id":"com.lab126.booklet"}'
+
+# Display inversion
+lipc-get-prop com.lab126.winmgr epdcMode           # Y8 or Y8INV
+lipc-set-prop com.lab126.winmgr epdcMode Y8INV
+lipc-set-prop com.lab126.winmgr epdcMode Y8
 ```
 
 ---
 
 ## Config file
 
-Located at `/mnt/us/documents/button_handler/config`. Edit to tune timing:
+Located at `/mnt/us/extensions/button_handler/config`. Edit to tune timing:
 
 ```sh
 LONG_PRESS_MS=800       # hold threshold for back/next long press

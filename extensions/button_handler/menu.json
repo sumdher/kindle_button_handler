@@ -62,7 +62,7 @@
         },
         {
           "name": "Recognized Buttons",
-          "if": "\"/mnt/us/documents/button_handler/config\" -f",
+          "if": "\"/mnt/us/extensions/button_handler/config\" -f",
           "items": [
             {
               "name": "Power button",
@@ -115,7 +115,7 @@
         },
         {
           "name": "--- Config: NOT SET  (run Capture first) ---",
-          "if": "\"/mnt/us/documents/button_handler/config\" -f!",
+          "if": "\"/mnt/us/extensions/button_handler/config\" -f!",
           "action": "./button_handler_main.sh",
           "params": "menu",
           "exitmenu": false,
@@ -125,7 +125,7 @@
         },
         {
           "name": "--- Power button: SET ---",
-          "if": "\"/mnt/us/documents/button_handler/config\" -f \"/mnt/us/documents/button_handler/config\" \"^BTN_POWER_CODE=\" -g &&",
+          "if": "\"/mnt/us/extensions/button_handler/config\" -f \"/mnt/us/extensions/button_handler/config\" \"^BTN_POWER_CODE=\" -g &&",
           "action": "./button_handler_main.sh",
           "params": "menu",
           "exitmenu": false,
@@ -135,7 +135,7 @@
         },
         {
           "name": "--- Next-page button: SET ---",
-          "if": "\"/mnt/us/documents/button_handler/config\" -f \"/mnt/us/documents/button_handler/config\" \"^BTN_NEXT_CODE=\" -g &&",
+          "if": "\"/mnt/us/extensions/button_handler/config\" -f \"/mnt/us/extensions/button_handler/config\" \"^BTN_NEXT_CODE=\" -g &&",
           "action": "./button_handler_main.sh",
           "params": "menu",
           "exitmenu": false,
@@ -145,7 +145,7 @@
         },
         {
           "name": "--- Prev-page button: SET ---",
-          "if": "\"/mnt/us/documents/button_handler/config\" -f \"/mnt/us/documents/button_handler/config\" \"^BTN_BACK_CODE=\" -g &&",
+          "if": "\"/mnt/us/extensions/button_handler/config\" -f \"/mnt/us/extensions/button_handler/config\" \"^BTN_BACK_CODE=\" -g &&",
           "action": "./button_handler_main.sh",
           "params": "menu",
           "exitmenu": false,

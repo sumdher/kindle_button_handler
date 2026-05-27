@@ -8,7 +8,7 @@
 #
 # Action scripts: /mnt/us/documents/button_handler/apps/<process>/<gesture>
 
-DATA="/mnt/us/documents/button_handler"
+DATA="/mnt/us/extensions/button_handler"
 PID="/tmp/kbh.pid"
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
@@ -325,7 +325,7 @@ daemon_run() {
 }
 
 # ── Entry point ───────────────────────────────────────────────────────────────
-mkdir -p "$DATA/apps/default" "$DATA/apps/kindle_browser"
+mkdir -p "$DATA/apps/default" "$DATA/apps/kindle_browser" 2>/dev/null || true
 
 case "${1:-toggle}" in
     __daemon)  daemon_run ;;
