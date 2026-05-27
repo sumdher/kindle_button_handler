@@ -112,7 +112,10 @@ show_btn() {
 start_d() {
     if running; then kh_msg "KBH: already running (PID $(cat "$PID"))"; return; fi
     if [ ! -f "$DATA/config" ]; then kh_msg "KBH: no config -- run Capture first"; return; fi
-    sh "$0" __daemon >> /tmp/kbh.log 2>&1 &
+    # setsid: put daemon in its own session so it survives stop/start of
+    # lab126_gui (which the shortcut_browser launch script calls, killing
+    # everything in the framework process group including KUAL children).
+    setsid sh "$0" __daemon >> /tmp/kbh.log 2>&1 &
     echo $! > "$PID"; sleep 1
     if running; then
         kh_msg "KBH: started (PID $(cat "$PID"))"
@@ -235,6 +238,7 @@ EOF
 daemon_run() {
     [ -f "$DATA/config" ] || { echo "no config" >&2; exit 1; }
     . "$DATA/config"
+    echo "$(date) daemon started PID=$$" >> /tmp/kbh.log
 
     LONG_PRESS_MS="${LONG_PRESS_MS:-800}"
     PWR_LONG_MS="${PWR_LONG_MS:-1000}"
@@ -254,14 +258,32 @@ daemon_run() {
         for app in "$DATA/apps"/*/; do
             nm="${app%/}"; nm="${nm##*/}"
             [ "$nm" = "global_defaults" ] && continue
-            pgrep -f "$nm" >/dev/null 2>&1 || continue
-            [ -f "${app}${g}" ] && s="${app}${g}" && break
+            if pgrep -f "$nm" >/dev/null 2>&1; then
+                echo "$(date) fire: pgrep matched nm=$nm for g=$g" >> /tmp/kbh.log
+                [ -f "${app}${g}" ] && s="${app}${g}" && break
+                echo "$(date) fire: no script ${app}${g} -- trying next app" >> /tmp/kbh.log
+            fi
         done
         [ -z "$s" ] && [ -f "$DATA/apps/global_defaults/$g" ] && s="$DATA/apps/global_defaults/$g"
         if [ -n "$s" ]; then
+            echo "$(date) fire: g=$g s=$s" >> /tmp/kbh.log
             _notif "$g"
             sh "$s" &
+        else
+            echo "$(date) fire: g=$g -- no script found" >> /tmp/kbh.log
         fi
+    }
+
+    chk_stuck() {
+        local now; now=$(ms)
+        [ "$bh" = "1" ] && [ "$bt" -gt 0 ] && [ $((now - bt)) -gt 5000 ] && {
+            echo "$(date) chk_stuck: resetting bh stuck state" >> /tmp/kbh.log
+            bh=0; bt=0; combo_base=""; combo_taps=0; cf=0
+        }
+        [ "$nh" = "1" ] && [ "$nt" -gt 0 ] && [ $((now - nt)) -gt 5000 ] && {
+            echo "$(date) chk_stuck: resetting nh stuck state" >> /tmp/kbh.log
+            nh=0; nt=0; combo_base=""; combo_taps=0; cf=0
+        }
     }
 
     pwr_reader() {
@@ -313,17 +335,19 @@ daemon_run() {
     # combo_base  : which button was pressed first ("back" | "next" | "")
     # combo_taps  : how many times the aux button was tapped while base is held
     bh=0; bt=0; nh=0; nt=0; cf=0; combo_base=""; combo_taps=0
-    trap 'kill $(jobs -p) 2>/dev/null; rm -f ${T}_pp ${T}_pr' EXIT
+    trap 'echo "$(date) daemon EXIT trap bh=$bh nh=$nh cf=$cf combo_base=$combo_base" >> /tmp/kbh.log; kill $(jobs -p) 2>/dev/null; rm -f ${T}_pp ${T}_pr' EXIT
     pwr_reader &
 
     while true; do
         [ -f "/tmp/kbh_paused" ] && { sleep 1; continue; }
         chk_pwr
+        chk_stuck
         # timeout 1: loop cycles every ~1s so chk_pwr runs even with no page events
         ev=$(timeout 1 dd if="$DEV_PAGE" bs=16 count=1 2>/dev/null | hexdump -v -e '16/1 "%02X"')
         [ "${#ev}" -lt 28 ] && continue
         t="${ev:16:4}"; c="${ev:20:4}"; v="${ev:24:8}"
         [ "$t" = "0100" ] || continue
+
 
         if [ "$c" = "$BACK_CODE" ]; then
             if [ "$v" = "01000000" ]; then
@@ -331,12 +355,13 @@ daemon_run() {
                 if [ "$nh" = "1" ]; then
                     # next already held → back is an aux tap on next-as-base combo
                     combo_taps=$((combo_taps + 1)); cf=1
+                    eips 0 0 "> combo next+back x$combo_taps -- release NEXT to fire" >/dev/null 2>&1
                 else
                     bh=1; bt=$(ms)
                     [ "$cf" = "0" ] && { combo_base="back"; combo_taps=0; }
                 fi
-            else
-                # BACK released
+            elif [ "$v" = "00000000" ]; then
+                # BACK released (ignore autorepeat v=02000000 — would corrupt combo state)
                 bh=0
                 if [ "$combo_base" = "back" ] && [ "$cf" = "1" ]; then
                     # back was base, fire with tap count
@@ -352,6 +377,7 @@ daemon_run() {
                 fi
                 bt=0
             fi
+            # v=02000000 autorepeat: intentionally ignored
 
         elif [ "$c" = "$NEXT_CODE" ]; then
             if [ "$v" = "01000000" ]; then
@@ -359,12 +385,13 @@ daemon_run() {
                 if [ "$bh" = "1" ]; then
                     # back already held → next is an aux tap on back-as-base combo
                     combo_taps=$((combo_taps + 1)); cf=1
+                    eips 0 0 "> combo back+next x$combo_taps -- release BACK to fire" >/dev/null 2>&1
                 else
                     nh=1; nt=$(ms)
                     [ "$cf" = "0" ] && { combo_base="next"; combo_taps=0; }
                 fi
-            else
-                # NEXT released
+            elif [ "$v" = "00000000" ]; then
+                # NEXT released (ignore autorepeat v=02000000)
                 nh=0
                 if [ "$combo_base" = "next" ] && [ "$cf" = "1" ]; then
                     # next was base, fire with tap count
@@ -380,6 +407,7 @@ daemon_run() {
                 fi
                 nt=0
             fi
+            # v=02000000 autorepeat: intentionally ignored
         fi
     done
 }

@@ -1,0 +1,9 @@
+#!/bin/sh
+# back_next_combo3 — hold prev-page, tap next-page THREE times (global_defaults profile)
+# Action: increase warm light (amber) level by 4 (max 24)
+
+cur=$(lipc-get-prop -i com.lab126.powerd currentAmberLevel 2>/dev/null)
+cur=${cur:-0}
+next=$((cur + 4))
+[ "$next" -gt 24 ] && next=24
+lipc-set-prop com.lab126.powerd currentAmberLevel "$next"
