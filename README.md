@@ -4,182 +4,140 @@ General-purpose physical button remapper for jailbroken Kindles. KUAL extension.
 
 **Tested on:** Kindle Oasis 3 (KOA3), firmware 5.18.2
 
----
-
-## Quick Setup
-
-1. Copy `extensions/button_handler` → `/mnt/us/extensions/button_handler`
-2. Open KUAL → **Button Handler [BETA]**
-3. Run **Capture** for each button (power, next-page, prev-page)
-4. Tap **Start**
-
-> No `chmod +x` needed — `/mnt/us` is FAT32. All scripts are invoked via `sh`.
+> *Basic bash knowledge helps if you want to customize actions.*
 
 ---
 
-## Default Gestures
+## Setup
+
+1. Copy `extensions/button_handler` to your kindle's `/mnt/us/extensions/button_handler`.
+2. Open KUAL → **Button Handler [BETA]** > run **Capture** for each button (power, next, prev)
+3. Tap **Start**
+4. To configure actions on triggers, see [this section](#customizing).
+
+---
+
+## Default Actions
 
 ### Global (always active)
 
-| Gesture | How | Action |
-|---|---|---|
-| `next_short` | tap next-page | brightness +2 |
-| `back_short` | tap prev-page | brightness -2 |
-| `back_long` | hold prev-page | go to home screen |
-| `power_long` | hold power | show battery + brightness info |
-| `back_next_combo` | hold prev, tap next **1×** | toggle dark mode |
-| `next_back_combo` | hold next, tap prev **1×** | toggle dark mode |
-| `back_next_combo2` | hold prev, tap next **2×** | toggle warm light |
-| `next_back_combo2` | hold next, tap prev **2×** | toggle warm light |
-| `back_next_combo3` | hold prev, tap next **3×** | warm light +4 |
-| `next_back_combo3` | hold next, tap prev **3×** | warm light −4 |
+| Trigger | Action |
+|---|---|
+| tap next-page | brightness +2 |
+| tap prev-page | brightness −2 |
+| hold prev-page | go to home screen |
+| hold power | show battery + brightness |
+| hold prev + tap next **1×** | toggle dark mode |
+| hold next + tap prev **1×** | toggle dark mode |
+| hold prev + tap next **2×** | toggle warm light |
+| hold next + tap prev **2×** | toggle warm light |
+| hold prev + tap next **3×** | warm light +4 |
+| hold next + tap prev **3×** | warm light −4 |
 
-### kindle_browser (active when `kindle_browser` process is running)
+### kindle\_browser (active when `kindle_browser` process runs)
 
-| Gesture | How | Action |
-|---|---|---|
-| `next_short` | tap next-page | brightness +2 |
-| `back_short` | tap prev-page | brightness -2 |
-| `next_long` | hold next-page | stop browser |
-| `back_long` | hold prev-page | reload page (CDP) |
-| `back_next_combo` | hold prev, tap next **1×** | toggle dark mode |
-| `next_back_combo` | hold next, tap prev **1×** | toggle dark mode |
+| Trigger | Action |
+|---|---|
+| tap next-page | brightness +2 |
+| tap prev-page | brightness −2 |
+| hold next-page | stop browser |
+| hold prev-page | reload page (CDP) |
+| hold prev + tap next **1×** | toggle dark mode |
+| hold next + tap prev **1×** | toggle dark mode |
 
-**Combo technique:** hold the **base** button first, tap the **aux** button N times, then **release the base** to fire. The count appears on screen as you tap.
+**Combo:** hold base → tap aux N times → **release base** to fire. Count shown on screen.
 
 ---
 
-## Adding Your Own Actions
+## Customizing
 
-Create a script at `/mnt/us/extensions/button_handler/apps/<profile>/<gesture>` (no `.sh`, no execute bit):
+Drop a script at `/mnt/us/extensions/button_handler/apps/<profile>/<gesture>` (no `.sh`, no execute bit). The profile directory name is matched against running processes via `pgrep -f`. `global_defaults` is always the fallback.
 
+Gesture names: `next_short`, `next_long`, `back_short`, `back_long`, `power_long`, `power_long_tap1`…`tapN`, `back_next_combo`, `back_next_combo2`…`comboN`, `next_back_combo`, `next_back_combo2`…`comboN`.
+
+Timing config at `/mnt/us/extensions/button_handler/config`:
 ```sh
-#!/bin/sh
-# example: next_short in a custom profile
-lipc-set-prop com.lab126.powerd flIntensity 12
-```
-
-**Profile matching** — the directory name is matched against running processes with `pgrep -f <name>`. First match wins; `global_defaults` is the fallback.
-
-To add a new app profile, create the directory and drop scripts in it:
-
-```
-apps/
-  my_app/         ← active when: pgrep -f my_app
-    next_short
-    back_short
-  global_defaults/ ← always active (fallback)
+LONG_PRESS_MS=800   # hold threshold (next/prev)
+PWR_LONG_MS=1000    # hold threshold (power)
+TAP_WINDOW_MS=400   # tap window after power_long
+MAX_TAPS=3
 ```
 
 ---
 
-## Config
-
-`/mnt/us/extensions/button_handler/config` — edit timing thresholds:
+## Useful Commands
 
 ```sh
-LONG_PRESS_MS=800    # hold threshold for back/next long press
-PWR_LONG_MS=1000     # hold threshold for power long press
-TAP_WINDOW_MS=400    # window to count taps after power_long
-MAX_TAPS=3           # max taps for power_long_tapN
-```
-
-Restart after changes: KUAL → Button Handler → **Restart**.
-
----
-
-## Useful lipc Commands
-
-```sh
-# Brightness (0–24)
+# Brightness / warm light (0–24)
 lipc-get-prop -i com.lab126.powerd flIntensity
 lipc-set-prop    com.lab126.powerd flIntensity 12
-
-# Warm light / amber (0–24)
 lipc-get-prop -i com.lab126.powerd currentAmberLevel
 lipc-set-prop    com.lab126.powerd currentAmberLevel 12
 
-# Display inversion (dark mode)
-lipc-get-prop com.lab126.winmgr epdcMode       # Y8 or Y8INV
+# Dark mode
+lipc-get-prop com.lab126.winmgr epdcMode        # Y8 or Y8INV
 lipc-set-prop com.lab126.winmgr epdcMode Y8INV
-lipc-set-prop com.lab126.winmgr epdcMode Y8
 
-# Go to home screen
+# Home screen
 lipc-set-prop com.lab126.KPPMainApp go "KPP_HOME"
 
 # Battery
 lipc-get-prop -i com.lab126.powerd battLevel
 lipc-get-prop -i com.lab126.powerd isCharging
 
-# Which app is currently in the foreground
+# Foreground app
 lipc-get-prop com.lab126.appmgrd activeApp
-# → com.mobileread.ixtab.kindlelauncher  (KUAL)
-# → com.lab126.KPPMainApp                (Kindle home)
-# → com.notmarek.shell_integration.launcher  (shortcut_browser)
+# com.mobileread.ixtab.kindlelauncher     → KUAL
+# com.lab126.KPPMainApp                   → Kindle home
+# com.notmarek.shell_integration.launcher → shortcut_browser
 
 # Wi-Fi
-lipc-get-prop    com.lab126.wifid cmState       # CONNECTED / DISCONNECTED
-lipc-set-prop    com.lab126.wifid cmd CONNECT
-lipc-set-prop    com.lab126.wifid cmd DISCONNECT
+lipc-set-prop com.lab126.wifid cmd CONNECT
+lipc-set-prop com.lab126.wifid cmd DISCONNECT
 ```
 
 ---
 
 ## Troubleshooting
 
-**Daemon won't start / "no config"**
-→ Run all three Capture steps first (power, next-page, prev-page), then Start.
+**"no config" on start** — run all three Capture steps first.
 
-**Gestures stop working after launching shortcut_browser**
-→ The browser's start script runs `stop lab126_gui`, which would kill any process in the framework's process group. The daemon is started with `setsid` to survive this. If it still dies:
+**Actions stop working after browser launch** — the browser kills `lab126_gui` on start, which would take down framework children. The daemon uses `setsid` to survive this. Verify:
 ```sh
 kill -0 $(cat /tmp/kbh.pid) && echo "ALIVE" || echo "DEAD"
 cat /tmp/kbh.log
 ```
 
-**Wrong app profile is being used**
-→ Check which app the OS reports as foreground:
+**Wrong profile firing** — check foreground app and verify pgrep matches:
 ```sh
 lipc-get-prop com.lab126.appmgrd activeApp
-```
-The profile directory name must be a substring of a running process. Use `pgrep -f <name>` to verify:
-```sh
 pgrep -f kindle_browser && echo "matched" || echo "no match"
 ```
 
-**KUAL exits to home when pressing Start/Stop**
-→ Any stdout from the action script causes KUAL to dismiss. All control paths in the main script redirect to `/dev/null`. If this recurs, check `/tmp/kbh.log` for unexpected output.
-
-**Capture shows nothing / timeout**
-→ The daemon is paused during capture. If the button isn't detected, it may be on a different event device. Check manually:
+**Capture times out** — find the right event device manually:
 ```sh
-hexdump -v -e '16/1 "%02X\n"' /dev/input/event0 &
-hexdump -v -e '16/1 "%02X\n"' /dev/input/event1 &
-hexdump -v -e '16/1 "%02X\n"' /dev/input/event2 &
-hexdump -v -e '16/1 "%02X\n"' /dev/input/event3 &
-# press the button, observe which device responds
-kill %1 %2 %3 %4
+for i in 0 1 2 3; do hexdump -v -e '16/1 "%02X\n"' /dev/input/event$i & done
+# press the button, note which device printed output, then: kill %1 %2 %3 %4
 ```
 
-**Check daemon log:**
-```sh
-cat /tmp/kbh.log
-```
+**Check daemon log:** `cat /tmp/kbh.log`
 
 ---
 
 ## Known Issues
 
-- **Power button events unreliable on Kindle UI** — The Kindle OS also listens to the power button. Events are sometimes consumed before the daemon's `pwr_reader` sees them. Power gestures work more reliably when the framework is not intercepting input (e.g., during browser fullscreen).
-- **Events not captured reliably in KUAL** — The Capture wizard pauses the daemon, but KUAL itself may consume key events. If a capture times out, try again or capture from SSH.
-- **shortcut_browser wrapper process lingers** — After running `stopbr`, the wrapper script (`shortcut_browser.sh`) stays alive in a power-button polling loop until the power button is physically pressed. This is harmless but occupies a process slot.
+- **Power button overrides don't work** — the OS intercepts power events; detection is inconsistent while the framework is running.
+- **Prev & next butons unreliable in Kindle UI** — similarly, Kindle UI listens on prev and next buttons to scroll the UI. The trigger capturing on this particular home page is a hit-or-miss.
 
 ---
 
-## Contributing — Adding Your Device
+<!-- ## Hey there!
 
-Edit `devices.json` with your button codes:
+If you are reading this, you seem to be interested in this project. Please add your Kindle device's key codes here so we can have a comprehensive dictionary for all the kindle devices. Thank you.
 
+### Adding Your Device (Optional)
+
+Edit `devices.json` with your button event and hex code (from Capture or hexdump):
 ```json
 "MODEL": {
   "name": "Kindle Model Name",
@@ -191,6 +149,4 @@ Edit `devices.json` with your button codes:
     "back":  {"event": "event3", "hex_code": "6D00"}
   }
 }
-```
-
-`hex_code` = little-endian 4-char hex from hexdump (key 116 = 0x74 → `7400`). Run the Capture wizard to find your codes automatically.
+``` -->
