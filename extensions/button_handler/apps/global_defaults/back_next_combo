@@ -1,10 +1,10 @@
 #!/bin/sh
 # back_next_combo — hold prev-page, tap next-page (global_defaults profile)
-# Action: toggle night mode (display inversion Y8 ↔ Y8INV)
+# Action: toggle warm light (amber) on/off
 
-cur=$(lipc-get-prop com.lab126.winmgr epdcMode 2>/dev/null)
-if [ "$cur" = "Y8INV" ]; then
-    lipc-set-prop com.lab126.winmgr epdcMode Y8
+cur=$(lipc-get-prop -i com.lab126.powerd currentAmberLevel 2>/dev/null)
+if [ "$cur" -gt 0 ]; then
+    lipc-set-prop com.lab126.powerd currentAmberLevel 0
 else
-    lipc-set-prop com.lab126.winmgr epdcMode Y8INV
+    lipc-set-prop com.lab126.powerd currentAmberLevel 24
 fi
