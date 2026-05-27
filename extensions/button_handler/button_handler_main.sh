@@ -38,7 +38,7 @@ kh_msg() { _eips "$1" $(( EIPS_ROWS - 2 )); }
 # Shows "▸ <gesture>" for 5s, then erases by overwriting with spaces.
 # The Kindle OS redraws its own status bar on the next UI refresh.
 _notif() {
-    _eips "  ▸ $1" 0
+    _eips "  > $1" 0
     ( sleep 5; _eips "" 0 ) &
 }
 
