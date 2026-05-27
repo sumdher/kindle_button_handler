@@ -1,123 +1,129 @@
 {
   "items": [
     {
-      "name": "Start",
-      "if": "\"/tmp/kbh.pid\" -f!",
-      "action": "./button_handler_main.sh",
-      "params": "start",
-      "exitmenu": false,
-      "refresh": true
-    },
-    {
-      "name": "Stop",
-      "if": "\"/tmp/kbh.pid\" -f",
-      "action": "./button_handler_main.sh",
-      "params": "stop",
-      "exitmenu": false,
-      "refresh": true
-    },
-    {
-      "name": "Restart",
-      "action": "./button_handler_main.sh",
-      "params": "restart",
-      "exitmenu": false,
-      "refresh": true
-    },
-    {
-      "name": "Capture: POWER button  (press w/in 12s)",
-      "action": "./button_handler_main.sh",
-      "params": "cap_power",
-      "exitmenu": false,
-      "refresh": false
-    },
-    {
-      "name": "Capture: NEXT PAGE button  (press w/in 12s)",
-      "action": "./button_handler_main.sh",
-      "params": "cap_next",
-      "exitmenu": false,
-      "refresh": false
-    },
-    {
-      "name": "Capture: PREV PAGE button  (press w/in 12s)",
-      "action": "./button_handler_main.sh",
-      "params": "cap_back",
-      "exitmenu": false,
-      "refresh": false
-    },
-    {
-      "name": "Recognized Buttons",
-      "if": "\"/mnt/us/extensions/button_handler/config\" -f",
+      "name": "Button Handler [BETA]",
+      "priority": -1,
       "items": [
         {
-          "name": "Power button",
+          "name": "Start",
+          "if": "\"/tmp/kbh.pid\" -f!",
           "action": "./button_handler_main.sh",
-          "params": "btn_power",
+          "params": "start",
           "exitmenu": false,
           "refresh": false
         },
         {
-          "name": "Next-page button",
+          "name": "Stop",
+          "if": "\"/tmp/kbh.pid\" -f",
           "action": "./button_handler_main.sh",
-          "params": "btn_next",
+          "params": "stop",
           "exitmenu": false,
           "refresh": false
         },
         {
-          "name": "Prev-page button",
+          "name": "Restart",
           "action": "./button_handler_main.sh",
-          "params": "btn_back",
+          "params": "restart",
+          "exitmenu": false,
+          "refresh": false
+        },
+        {
+          "name": "Capture: POWER button  (press w/in 12s)",
+          "action": "./button_handler_main.sh",
+          "params": "cap_power",
+          "exitmenu": false,
+          "refresh": false
+        },
+        {
+          "name": "Capture: NEXT PAGE button  (press w/in 12s)",
+          "action": "./button_handler_main.sh",
+          "params": "cap_next",
+          "exitmenu": false,
+          "refresh": false
+        },
+        {
+          "name": "Capture: PREV PAGE button  (press w/in 12s)",
+          "action": "./button_handler_main.sh",
+          "params": "cap_back",
+          "exitmenu": false,
+          "refresh": false
+        },
+        {
+          "name": "Recognized Buttons",
+          "if": "\"/mnt/us/extensions/button_handler/config\" -f",
+          "items": [
+            {
+              "name": "Power button",
+              "action": "./button_handler_main.sh",
+              "params": "btn_power",
+              "exitmenu": false,
+              "refresh": false
+            },
+            {
+              "name": "Next-page button",
+              "action": "./button_handler_main.sh",
+              "params": "btn_next",
+              "exitmenu": false,
+              "refresh": false
+            },
+            {
+              "name": "Prev-page button",
+              "action": "./button_handler_main.sh",
+              "params": "btn_back",
+              "exitmenu": false,
+              "refresh": false
+            }
+          ]
+        },
+        {
+          "name": "--- Daemon: RUNNING ---",
+          "if": "\"/tmp/kbh.pid\" -f",
+          "action": "./button_handler_main.sh",
+          "params": "menu",
+          "exitmenu": false,
+          "refresh": false
+        },
+        {
+          "name": "--- Daemon: STOPPED ---",
+          "if": "\"/tmp/kbh.pid\" -f!",
+          "action": "./button_handler_main.sh",
+          "params": "menu",
+          "exitmenu": false,
+          "refresh": false
+        },
+        {
+          "name": "--- Config: NOT SET  (run Capture first) ---",
+          "if": "\"/mnt/us/extensions/button_handler/config\" -f!",
+          "action": "./button_handler_main.sh",
+          "params": "menu",
+          "exitmenu": false,
+          "refresh": false
+        },
+        {
+          "name": "--- Power button: SET ---",
+          "if": "\"/mnt/us/extensions/button_handler/config\" -f \"/mnt/us/extensions/button_handler/config\" \"^BTN_POWER_CODE=\" -g &&",
+          "action": "./button_handler_main.sh",
+          "params": "menu",
+          "exitmenu": false,
+          "refresh": false
+        },
+        {
+          "name": "--- Next-page button: SET ---",
+          "if": "\"/mnt/us/extensions/button_handler/config\" -f \"/mnt/us/extensions/button_handler/config\" \"^BTN_NEXT_CODE=\" -g &&",
+          "action": "./button_handler_main.sh",
+          "params": "menu",
+          "exitmenu": false,
+          "refresh": false
+        },
+        {
+          "name": "--- Prev-page button: SET ---",
+          "if": "\"/mnt/us/extensions/button_handler/config\" -f \"/mnt/us/extensions/button_handler/config\" \"^BTN_BACK_CODE=\" -g &&",
+          "action": "./button_handler_main.sh",
+          "params": "menu",
           "exitmenu": false,
           "refresh": false
         }
       ]
-    },
-    {
-      "name": "--- Daemon: RUNNING ---",
-      "if": "\"/tmp/kbh.pid\" -f",
-      "action": "./button_handler_main.sh",
-      "params": "menu",
-      "exitmenu": false,
-      "refresh": false
-    },
-    {
-      "name": "--- Daemon: STOPPED ---",
-      "if": "\"/tmp/kbh.pid\" -f!",
-      "action": "./button_handler_main.sh",
-      "params": "menu",
-      "exitmenu": false,
-      "refresh": false
-    },
-    {
-      "name": "--- Config: NOT SET  (run Capture first) ---",
-      "if": "\"/mnt/us/extensions/button_handler/config\" -f!",
-      "action": "./button_handler_main.sh",
-      "params": "menu",
-      "exitmenu": false,
-      "refresh": false
-    },
-    {
-      "name": "--- Power button: SET ---",
-      "if": "\"/mnt/us/extensions/button_handler/config\" -f \"/mnt/us/extensions/button_handler/config\" \"^BTN_POWER_CODE=\" -g &&",
-      "action": "./button_handler_main.sh",
-      "params": "menu",
-      "exitmenu": false,
-      "refresh": false
-    },
-    {
-      "name": "--- Next-page button: SET ---",
-      "if": "\"/mnt/us/extensions/button_handler/config\" -f \"/mnt/us/extensions/button_handler/config\" \"^BTN_NEXT_CODE=\" -g &&",
-      "action": "./button_handler_main.sh",
-      "params": "menu",
-      "exitmenu": false,
-      "refresh": false
-    },
-    {
-      "name": "--- Prev-page button: SET ---",
-      "if": "\"/mnt/us/extensions/button_handler/config\" -f \"/mnt/us/extensions/button_handler/config\" \"^BTN_BACK_CODE=\" -g &&",
-      "action": "./button_handler_main.sh",
-      "params": "menu",
-      "exitmenu": false,
-      "refresh": false
     }
   ]
 }
