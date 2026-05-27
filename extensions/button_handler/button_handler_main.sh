@@ -6,7 +6,7 @@
 #                    menu.sh (dynamic) handles live status display.
 # From SSH/terminal: same args work, echo output goes to terminal.
 #
-# Action scripts: /mnt/us/documents/button_handler/apps/<process>/<gesture>
+# Action scripts: /mnt/us/extensions/button_handler/apps/<process>/<gesture>
 
 DATA="/mnt/us/extensions/button_handler"
 PID="/tmp/kbh.pid"
@@ -235,9 +235,9 @@ daemon_run() {
             nm="${app%/}"; nm="${nm##*/}"
             [ "$nm" = "default" ] && continue
             pgrep -f "$nm" >/dev/null 2>&1 || continue
-            [ -x "${app}${g}" ] && s="${app}${g}" && break
+            [ -f "${app}${g}" ] && s="${app}${g}" && break
         done
-        [ -z "$s" ] && [ -x "$DATA/apps/default/$g" ] && s="$DATA/apps/default/$g"
+        [ -z "$s" ] && [ -f "$DATA/apps/default/$g" ] && s="$DATA/apps/default/$g"
         [ -n "$s" ] && sh "$s" &
     }
 
